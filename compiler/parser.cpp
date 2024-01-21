@@ -7,7 +7,7 @@
 
 #include "scanner.h"
 
-// program      ->  (component)+
+// program      ->  component*
 // component    ->  COMP ID LPAREN RPAREN LCURLY RCURLY
 
 ProgramNode parse_tokens(const std::vector<Token> &tokens) {
@@ -48,11 +48,5 @@ ProgramNode parse_tokens(const std::vector<Token> &tokens) {
     while (index < tokens.size()) {
         result.components.push_back(component());
     }
-
-    if (result.components.empty()) {
-        throw std::runtime_error(
-            "Parsing error: There must be at least one component");
-    }
-
     return result;
 }

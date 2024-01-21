@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "analyzer.h"
 #include "parser.h"
 #include "scanner.h"
 
@@ -25,6 +26,7 @@ int main(int argc, char* argv[]) {
     try {
         const auto tokens = scan_tokens(buffer.str());
         const auto tree = parse_tokens(tokens);
+        analyze_tree(tree);
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
         return 1;
