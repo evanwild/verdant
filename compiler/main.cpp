@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "parser.h"
 #include "scanner.h"
 
 int main(int argc, char* argv[]) {
@@ -22,7 +23,8 @@ int main(int argc, char* argv[]) {
     source_file.close();
 
     try {
-        auto tokens = scan_tokens(buffer.str());
+        const auto tokens = scan_tokens(buffer.str());
+        const auto tree = parse_tokens(tokens);
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
         return 1;
@@ -34,7 +36,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    output_file << "<!DOCTYPE html><title>Verdant App</title>\n";
+    output_file << "<!DOCTYPE html>\n"
+                   "<html>\n"
+                   "\n"
+                   "<head>\n"
+                   "    <title>Verdant App</title>\n"
+                   "</head>\n"
+                   "\n"
+                   "<body>\n"
+                   "    <div id=\"root\"></div>\n"
+                   "    <script>\n"
+                   "        const root = document.getElementById(\"root\");\n"
+                   "    </script>\n"
+                   "</body>\n"
+                   "\n"
+                   "</html>\n";
 
     return 0;
 }

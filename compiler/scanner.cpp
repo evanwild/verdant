@@ -18,7 +18,7 @@ std::vector<Token> scan_tokens(const std::string& source) {
     std::size_t line = 1;
 
     while (index < source.length()) {
-        char ch = source[index];
+        const char ch = source[index];
         ++index;
 
         if (ch == '\n') {
@@ -51,7 +51,7 @@ std::vector<Token> scan_tokens(const std::string& source) {
 
             result.emplace_back(kind, std::move(lexeme));
         } else {
-            auto error_msg = std::format(
+            const auto error_msg = std::format(
                 "Scanning error: Did not expect \'{}\' on line {}", ch, line);
             throw std::runtime_error(error_msg);
         }

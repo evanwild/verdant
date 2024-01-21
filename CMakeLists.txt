@@ -7,5 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(Verdant
     compiler/main.cpp
+    compiler/parser.cpp
     compiler/scanner.cpp
 )
