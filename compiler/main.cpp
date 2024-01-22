@@ -3,9 +3,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "analyzer.h"
 #include "parser.h"
 #include "scanner.h"
+#include "semantic.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
@@ -24,9 +24,13 @@ int main(int argc, char* argv[]) {
     source_file.close();
 
     try {
-        const auto tokens = scan_tokens(buffer.str());
-        const auto tree = parse_tokens(tokens);
-        analyze_tree(tree);
+        Scanner scanner{buffer.str()};
+        const auto tokens = scanner.scan_tokens();
+
+        Parser parser{tokens};
+        const auto tree = parser.make_tree();
+
+        semantic_analyze(tree);
     } catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
         return 1;

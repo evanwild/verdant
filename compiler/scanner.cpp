@@ -1,6 +1,7 @@
 #include "scanner.h"
 
 #include <cctype>
+#include <cstddef>
 #include <format>
 #include <stdexcept>
 #include <string>
@@ -12,14 +13,16 @@ const std::unordered_map<std::string, TokenKind> keywords = {
     {"comp", TokenKind::Component},
 };
 
-std::vector<Token> scan_tokens(const std::string& source) {
-    std::vector<Token> result;
-    std::size_t index = 0;
-    std::size_t line = 1;
+Scanner::Scanner(std::string source)
+    : m_source{std::move(source)}, m_index{0} {}
 
-    while (index < source.length()) {
-        const char ch = source[index];
-        ++index;
+std::vector<Token> Scanner::scan_tokens() {
+    std::vector<Token> result;
+    std::size_t line = 1;  // Used for error messages
+
+    while (m_index < m_source.length()) {
+        const char ch = m_source[m_index];
+        ++m_index;
 
         if (ch == '\n') {
             ++line;
@@ -38,9 +41,9 @@ std::vector<Token> scan_tokens(const std::string& source) {
             std::string lexeme;
 
             lexeme += ch;
-            while (index < source.length() && isalpha(source[index])) {
-                lexeme += source[index];
-                ++index;
+            while (m_index < m_source.length() && isalnum(m_source[m_index])) {
+                lexeme += m_source[m_index];
+                ++m_index;
             }
 
             if (auto it = keywords.find(lexeme); it != keywords.end()) {

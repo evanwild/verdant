@@ -1,4 +1,4 @@
-#include "analyzer.h"
+#include "semantic.h"
 
 #include <cctype>
 #include <format>
@@ -8,13 +8,13 @@
 
 #include "parser.h"
 
-void analyze_tree(const ProgramNode &tree) {
+void semantic_analyze(const ProgramNode &tree) {
     std::unordered_set<std::string> component_names;
 
     for (const auto &component : tree.components) {
         if (!std::isupper(component.name[0])) {
             const auto error_msg = std::format(
-                "Analyzing error: The component name \"{}\" must start with an "
+                "Semantic error: The component name \"{}\" must start with an "
                 "uppercase letter",
                 component.name);
             throw std::runtime_error(error_msg);
@@ -22,7 +22,7 @@ void analyze_tree(const ProgramNode &tree) {
 
         if (component_names.contains(component.name)) {
             const auto error_msg = std::format(
-                "Analyzing error: There are two components named \"{}\"",
+                "Semantic error: There are multiple components named \"{}\"",
                 component.name);
             throw std::runtime_error(error_msg);
         }
@@ -32,6 +32,6 @@ void analyze_tree(const ProgramNode &tree) {
 
     if (!component_names.contains("Main")) {
         throw std::runtime_error(
-            "Analyzing error: There must be a component named \"Main\"");
+            "Semantic error: There must be a component named \"Main\"");
     }
 }

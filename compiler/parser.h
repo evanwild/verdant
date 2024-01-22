@@ -14,6 +14,19 @@ struct ProgramNode {
     std::vector<ComponentNode> components;
 };
 
-ProgramNode parse_tokens(const std::vector<Token> &tokens);
+class Parser {
+   public:
+    Parser(std::vector<Token> tokens);
+
+    ProgramNode make_tree();
+
+   private:
+    bool match(TokenKind kind);
+
+    ComponentNode component();
+
+    std::vector<Token> m_tokens;
+    std::size_t m_index;
+};
 
 #endif  // PARSER_H
