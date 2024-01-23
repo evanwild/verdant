@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 #include "parser.h"
 #include "scanner.h"
@@ -13,7 +14,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::ifstream source_file(argv[1]);
+    std::ifstream source_file{argv[1]};
     if (!source_file) {
         std::cerr << "Failed to read file " << argv[1] << '\n';
         return 1;
@@ -27,7 +28,7 @@ int main(int argc, char* argv[]) {
         Scanner scanner{buffer.str()};
         const auto tokens = scanner.scan_tokens();
 
-        Parser parser{tokens};
+        Parser parser{std::move(tokens)};
         const auto tree = parser.make_tree();
 
         semantic_analyze(tree);
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::ofstream output_file("index.html");
+    std::ofstream output_file{"index.html"};
     if (!output_file) {
         std::cerr << "Failed to write file index.html\n";
         return 1;

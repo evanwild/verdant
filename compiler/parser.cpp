@@ -10,38 +10,84 @@
 #include "scanner.h"
 
 // program      ->  component*
-// component    ->  COMP ID LPAREN RPAREN LCURLY RCURLY
+// component    ->  COMP ID LPAREN RPAREN LCURLY html* RCURLY
+// html         ->  LANGLE ID RANGLE content LANGLE FSLASH ID RANGLE
+// content      ->  TODO...
 
 Parser::Parser(std::vector<Token> tokens)
     : m_tokens{std::move(tokens)}, m_index{0} {}
 
-bool Parser::match(TokenKind kind) {
-    if (m_index < m_tokens.size() && m_tokens[m_index].kind == kind) {
-        ++m_index;
-        return true;
+void Parser::match(TokenKind kind) {
+    if (m_index >= m_tokens.size()) {
+        throw std::runtime_error(
+            "Parsing error: Reached end of file while parsing");
     }
-    return false;
+
+    if (m_tokens[m_index].kind != kind) {
+        const auto error_msg = std::format(
+            "Parsing error: Did not expect \"{}\"", m_tokens[m_index].lexeme);
+        throw std::runtime_error(error_msg);
+    }
+
+    ++m_index;
+}
+
+bool Parser::peek(TokenKind kind) {
+    return m_index < m_tokens.size() && m_tokens[m_index].kind == kind;
+}
+
+Token Parser::prev() {
+    if (m_index == 0) {
+        throw std::out_of_range("Tried to check token at -1");
+    }
+    return m_tokens[m_index - 1];
+}
+
+HTMLNode Parser::html() {
+    HTMLNode result;
+
+    match(TokenKind::LAngle);
+    match(TokenKind::Identifier);
+
+    result.tag_type = prev().lexeme;
+
+    match(TokenKind::RAngle);
+
+    // TODO...
+
+    match(TokenKind::LAngle);
+    match(TokenKind::FSlash);
+    match(TokenKind::Identifier);
+
+    if (result.tag_type != prev().lexeme) {
+        const auto error_msg = std::format(
+            "Parsing error: Expected closing tag for \"{}\" but found \"{}\"",
+            result.tag_type, prev().lexeme);
+        throw std::runtime_error(error_msg);
+    }
+
+    match(TokenKind::RAngle);
+
+    return result;
 }
 
 ComponentNode Parser::component() {
     ComponentNode result;
-    bool success = false;
 
-    if (match(TokenKind::Component) && match(TokenKind::Identifier)) {
-        result.name = m_tokens[m_index - 1].lexeme;
+    match(TokenKind::Component);
+    match(TokenKind::Identifier);
 
-        if (match(TokenKind::LParen) && match(TokenKind::RParen) &&
-            match(TokenKind::LCurly) && match(TokenKind::RCurly)) {
-            success = true;
-        }
+    result.name = prev().lexeme;
+
+    match(TokenKind::LParen);
+    match(TokenKind::RParen);
+    match(TokenKind::LCurly);
+
+    while (peek(TokenKind::LAngle)) {
+        result.htmls.push_back(html());
     }
 
-    if (!success) {
-        const auto error_msg = std::format(
-            "Parsing error: Tried to parse component but found \"{}\"",
-            m_tokens[m_index].lexeme);
-        throw std::runtime_error(error_msg);
-    }
+    match(TokenKind::RCurly);
 
     return result;
 }

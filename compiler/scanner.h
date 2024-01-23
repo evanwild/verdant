@@ -6,12 +6,20 @@
 #include <vector>
 
 enum class TokenKind {
-    Component,
-    Identifier,
+    // Single-character
     LParen,
     RParen,
     LCurly,
     RCurly,
+    LAngle,
+    RAngle,
+    FSlash,
+
+    // Literals
+    Identifier,
+
+    // Keywords
+    Component,
 };
 
 struct Token {

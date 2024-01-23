@@ -36,6 +36,12 @@ std::vector<Token> Scanner::scan_tokens() {
             result.emplace_back(TokenKind::LCurly, "{");
         } else if (ch == '}') {
             result.emplace_back(TokenKind::RCurly, "}");
+        } else if (ch == '<') {
+            result.emplace_back(TokenKind::LAngle, "<");
+        } else if (ch == '>') {
+            result.emplace_back(TokenKind::RAngle, ">");
+        } else if (ch == '/') {
+            result.emplace_back(TokenKind::FSlash, "/");
         } else if (std::isalpha(ch)) {
             TokenKind kind;
             std::string lexeme;

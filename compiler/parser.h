@@ -6,8 +6,13 @@
 
 #include "scanner.h"
 
+struct HTMLNode {
+    std::string tag_type;
+};
+
 struct ComponentNode {
     std::string name;
+    std::vector<HTMLNode> htmls;
 };
 
 struct ProgramNode {
@@ -21,8 +26,11 @@ class Parser {
     ProgramNode make_tree();
 
    private:
-    bool match(TokenKind kind);
+    void match(TokenKind kind);
+    bool peek(TokenKind kind);
+    Token prev();
 
+    HTMLNode html();
     ComponentNode component();
 
     std::vector<Token> m_tokens;

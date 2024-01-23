@@ -14,7 +14,7 @@ void semantic_analyze(const ProgramNode &tree) {
     for (const auto &component : tree.components) {
         if (!std::isupper(component.name[0])) {
             const auto error_msg = std::format(
-                "Semantic error: The component name \"{}\" must start with an "
+                "Semantic error: The component \"{}\" must start with an "
                 "uppercase letter",
                 component.name);
             throw std::runtime_error(error_msg);
@@ -28,6 +28,14 @@ void semantic_analyze(const ProgramNode &tree) {
         }
 
         component_names.insert(component.name);
+
+        if (component.htmls.empty()) {
+            const auto error_msg = std::format(
+                "Semantic error: The component \"{}\" must end with at least "
+                "one HTML element",
+                component.name);
+            throw std::runtime_error(error_msg);
+        }
     }
 
     if (!component_names.contains("Main")) {
