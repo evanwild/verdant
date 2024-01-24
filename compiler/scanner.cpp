@@ -32,26 +32,34 @@ char Scanner::consume() {
 
 std::vector<Token> Scanner::scan_tokens() {
     std::vector<Token> result;
-    std::size_t line = 1;  // Used for error messages
 
     while (m_index < m_source.length()) {
-        const char ch = consume();
+        // No whitespace allowed between "<" or "</" and tag name
+        if (!result.empty() && std::isspace(peek()) &&
+            (result.back().kind == TokenKind::Open ||
+             result.back().kind == TokenKind::OpenSlash)) {
+            const auto error_msg =
+                std::format("Scanning error: No whitespace can be after \"{}\"",
+                            result.back().lexeme);
+            throw std::runtime_error(error_msg);
+        }
 
-        // HTML rule: no whitespace between "<" or "</" and tag name
-        if (!result.empty() && std::isspace(ch)) {
-            if (result.back().kind == TokenKind::Open ||
-                result.back().kind == TokenKind::OpenSlash) {
-                const auto error_msg = std::format(
-                    "Scanning error: No whitespace allowed after \"{}\" on "
-                    "line {}",
-                    result.back().lexeme, line);
-                throw std::runtime_error(error_msg);
+        // Check if we should read an HTML string literal
+        if (m_index > 0 && m_source[m_index - 1] == '>') {
+            if (m_source.find('<', m_index) != std::string::npos) {
+                std::string lexeme;
+                while (peek() != '<') {
+                    lexeme += consume();
+                }
+
+                result.emplace_back(TokenKind::String, std::move(lexeme));
+                continue;
             }
         }
 
-        if (ch == '\n') {
-            ++line;
-        } else if (std::isspace(ch)) {
+        const char ch = consume();
+
+        if (std::isspace(ch)) {
             continue;
         } else if (ch == '<' && peek() == '/') {
             consume();
@@ -88,8 +96,8 @@ std::vector<Token> Scanner::scan_tokens() {
 
             result.emplace_back(kind, std::move(lexeme));
         } else {
-            const auto error_msg = std::format(
-                "Scanning error: Did not expect \'{}\' on line {}", ch, line);
+            const auto error_msg =
+                std::format("Scanning error: Did not expect \'{}\'", ch);
             throw std::runtime_error(error_msg);
         }
     }

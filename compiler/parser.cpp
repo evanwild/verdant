@@ -51,9 +51,23 @@ HTMLNode Parser::html() {
 
     result.tag_type = prev().lexeme;
 
+    if (peek(TokenKind::SlashClose)) {
+        match(TokenKind::SlashClose);
+        return result;
+    }
+
     match(TokenKind::Close);
 
-    // TODO...
+    for (;;) {
+        if (peek(TokenKind::String)) {
+            match(TokenKind::String);
+            result.contents.emplace_back(prev().lexeme);
+        } else if (peek(TokenKind::Open)) {
+            result.contents.emplace_back(html());
+        } else {
+            break;
+        }
+    }
 
     match(TokenKind::OpenSlash);
     match(TokenKind::Identifier);

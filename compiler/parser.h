@@ -2,12 +2,14 @@
 #define PARSER_H
 
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "scanner.h"
 
 struct HTMLNode {
     std::string tag_type;
+    std::vector<std::variant<std::string, HTMLNode>> contents;
 };
 
 struct ComponentNode {
