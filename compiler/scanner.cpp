@@ -16,18 +16,49 @@ const std::unordered_map<std::string, TokenKind> keywords = {
 Scanner::Scanner(std::string source)
     : m_source{std::move(source)}, m_index{0} {}
 
+char Scanner::peek() {
+    if (m_index < m_source.size()) {
+        return m_source[m_index];
+    }
+    return '\0';
+}
+
+char Scanner::consume() {
+    if (m_index < m_source.size()) {
+        return m_source[m_index++];
+    }
+    return '\0';
+}
+
 std::vector<Token> Scanner::scan_tokens() {
     std::vector<Token> result;
     std::size_t line = 1;  // Used for error messages
 
     while (m_index < m_source.length()) {
-        const char ch = m_source[m_index];
-        ++m_index;
+        const char ch = consume();
+
+        // HTML rule: no whitespace between "<" or "</" and tag name
+        if (!result.empty() && std::isspace(ch)) {
+            if (result.back().kind == TokenKind::Open ||
+                result.back().kind == TokenKind::OpenSlash) {
+                const auto error_msg = std::format(
+                    "Scanning error: No whitespace allowed after \"{}\" on "
+                    "line {}",
+                    result.back().lexeme, line);
+                throw std::runtime_error(error_msg);
+            }
+        }
 
         if (ch == '\n') {
             ++line;
         } else if (std::isspace(ch)) {
             continue;
+        } else if (ch == '<' && peek() == '/') {
+            consume();
+            result.emplace_back(TokenKind::OpenSlash, "</");
+        } else if (ch == '/' && peek() == '>') {
+            consume();
+            result.emplace_back(TokenKind::SlashClose, "/>");
         } else if (ch == '(') {
             result.emplace_back(TokenKind::LParen, "(");
         } else if (ch == ')') {
@@ -37,19 +68,16 @@ std::vector<Token> Scanner::scan_tokens() {
         } else if (ch == '}') {
             result.emplace_back(TokenKind::RCurly, "}");
         } else if (ch == '<') {
-            result.emplace_back(TokenKind::LAngle, "<");
+            result.emplace_back(TokenKind::Open, "<");
         } else if (ch == '>') {
-            result.emplace_back(TokenKind::RAngle, ">");
-        } else if (ch == '/') {
-            result.emplace_back(TokenKind::FSlash, "/");
+            result.emplace_back(TokenKind::Close, ">");
         } else if (std::isalpha(ch)) {
             TokenKind kind;
             std::string lexeme;
-
             lexeme += ch;
-            while (m_index < m_source.length() && isalnum(m_source[m_index])) {
-                lexeme += m_source[m_index];
-                ++m_index;
+
+            while (isalnum(peek())) {
+                lexeme += consume();
             }
 
             if (auto it = keywords.find(lexeme); it != keywords.end()) {

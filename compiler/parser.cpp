@@ -11,8 +11,8 @@
 
 // program      ->  component*
 // component    ->  COMP ID LPAREN RPAREN LCURLY html* RCURLY
-// html         ->  LANGLE ID RANGLE content LANGLE FSLASH ID RANGLE
-// content      ->  TODO...
+// html         ->  OPEN ID SLASHCLOSE
+// html         ->  OPEN ID CLOSE (STRING | html)* OPENSLASH ID CLOSE
 
 Parser::Parser(std::vector<Token> tokens)
     : m_tokens{std::move(tokens)}, m_index{0} {}
@@ -46,17 +46,16 @@ Token Parser::prev() {
 HTMLNode Parser::html() {
     HTMLNode result;
 
-    match(TokenKind::LAngle);
+    match(TokenKind::Open);
     match(TokenKind::Identifier);
 
     result.tag_type = prev().lexeme;
 
-    match(TokenKind::RAngle);
+    match(TokenKind::Close);
 
     // TODO...
 
-    match(TokenKind::LAngle);
-    match(TokenKind::FSlash);
+    match(TokenKind::OpenSlash);
     match(TokenKind::Identifier);
 
     if (result.tag_type != prev().lexeme) {
@@ -66,7 +65,7 @@ HTMLNode Parser::html() {
         throw std::runtime_error(error_msg);
     }
 
-    match(TokenKind::RAngle);
+    match(TokenKind::Close);
 
     return result;
 }
@@ -83,7 +82,7 @@ ComponentNode Parser::component() {
     match(TokenKind::RParen);
     match(TokenKind::LCurly);
 
-    while (peek(TokenKind::LAngle)) {
+    while (peek(TokenKind::Open)) {
         result.htmls.push_back(html());
     }
 

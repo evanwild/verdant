@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     }
 
     output_file << "<!DOCTYPE html>\n"
-                   "<html>\n"
+                   "<html lang=\"en\">\n"
                    "\n"
                    "<head>\n"
                    "    <title>Verdant App</title>\n"

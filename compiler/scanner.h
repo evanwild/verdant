@@ -6,20 +6,19 @@
 #include <vector>
 
 enum class TokenKind {
-    // Single-character
+    Identifier,
+    Component,
     LParen,
     RParen,
     LCurly,
     RCurly,
-    LAngle,
-    RAngle,
-    FSlash,
 
-    // Literals
-    Identifier,
-
-    // Keywords
-    Component,
+    // HTML Specific
+    Open,
+    OpenSlash,
+    Close,
+    SlashClose,
+    String,
 };
 
 struct Token {
@@ -34,6 +33,9 @@ class Scanner {
     std::vector<Token> scan_tokens();
 
    private:
+    char peek();
+    char consume();
+
     std::string m_source;
     std::size_t m_index;
 };
