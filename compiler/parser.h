@@ -5,7 +5,7 @@
 #include <variant>
 #include <vector>
 
-#include "scanner.h"
+#include "lexer.h"
 
 struct HTMLNode {
     std::string tag_type;

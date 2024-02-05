@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "scanner.h"
+#include "lexer.h"
 
 // program      ->  component*
 // component    ->  COMP ID LPAREN RPAREN LCURLY html* RCURLY
@@ -19,13 +19,12 @@ Parser::Parser(std::vector<Token> tokens)
 
 void Parser::match(TokenKind kind) {
     if (m_index >= m_tokens.size()) {
-        throw std::runtime_error(
-            "Parsing error: Reached end of file while parsing");
+        throw std::runtime_error("Unexpectedly reached end of file");
     }
 
     if (m_tokens[m_index].kind != kind) {
-        const auto error_msg = std::format(
-            "Parsing error: Did not expect \"{}\"", m_tokens[m_index].lexeme);
+        const auto error_msg =
+            std::format("Did not expect \"{}\"", m_tokens[m_index].lexeme);
         throw std::runtime_error(error_msg);
     }
 
@@ -73,9 +72,9 @@ HTMLNode Parser::html() {
     match(TokenKind::Identifier);
 
     if (result.tag_type != prev().lexeme) {
-        const auto error_msg = std::format(
-            "Parsing error: Expected closing tag for \"{}\" but found \"{}\"",
-            result.tag_type, prev().lexeme);
+        const auto error_msg =
+            std::format("Expected closing tag for \"{}\" but found \"{}\"",
+                        result.tag_type, prev().lexeme);
         throw std::runtime_error(error_msg);
     }
 

@@ -1,5 +1,5 @@
-#ifndef SCANNER_H
-#define SCANNER_H
+#ifndef LEXER_H
+#define LEXER_H
 
 #include <cstddef>
 #include <string>
@@ -26,9 +26,9 @@ struct Token {
     std::string lexeme;
 };
 
-class Scanner {
+class Lexer {
    public:
-    Scanner(std::string source);
+    Lexer(std::string source);
 
     std::vector<Token> scan_tokens();
 
@@ -40,4 +40,4 @@ class Scanner {
     std::size_t m_index;
 };
 
-#endif  // SCANNER_H
+#endif  // LEXER_H

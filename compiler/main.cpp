@@ -4,8 +4,8 @@
 #include <sstream>
 #include <utility>
 
+#include "lexer.h"
 #include "parser.h"
-#include "scanner.h"
 #include "semantic.h"
 
 int main(int argc, char* argv[]) {
@@ -20,20 +20,36 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Read the whole source file into a std::string, see
+    // https://stackoverflow.com/a/2602258
     std::stringstream buffer;
     buffer << source_file.rdbuf();
     source_file.close();
 
+    Lexer lexer{buffer.str()};
+    std::vector<Token> tokens;
+
     try {
-        Scanner scanner{buffer.str()};
-        const auto tokens = scanner.scan_tokens();
+        tokens = lexer.scan_tokens();
+    } catch (const std::exception& e) {
+        std::cerr << "Lexing error: " << e.what() << '\n';
+        return 1;
+    }
 
-        Parser parser{std::move(tokens)};
-        const auto tree = parser.make_tree();
+    Parser parser{std::move(tokens)};
+    ProgramNode tree;
 
+    try {
+        tree = parser.make_tree();
+    } catch (const std::exception& e) {
+        std::cerr << "Parsing error: " << e.what() << '\n';
+        return 1;
+    }
+
+    try {
         semantic_analyze(tree);
     } catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
+        std::cerr << "Semantic error: " << e.what() << '\n';
         return 1;
     }
 
