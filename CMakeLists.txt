@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(Verdant
-    compiler/main.cpp
+    compiler/codegen.cpp
     compiler/lexer.cpp
+    compiler/main.cpp
     compiler/parser.cpp
     compiler/semantic.cpp
 )

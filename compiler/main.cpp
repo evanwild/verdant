@@ -1,9 +1,11 @@
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <utility>
 
+#include "codegen.h"
 #include "lexer.h"
 #include "parser.h"
 #include "semantic.h"
@@ -53,27 +55,37 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::ofstream output_file{"index.html"};
-    if (!output_file) {
-        std::cerr << "Failed to write file index.html\n";
+    std::filesystem::path output_dir{"./dist"};
+
+    std::filesystem::remove_all(output_dir);
+    std::filesystem::create_directory(output_dir);
+
+    std::ofstream index_html{output_dir / "index.html"};
+    if (!index_html) {
+        std::cerr << "Failed to create index.html\n";
         return 1;
     }
 
-    output_file << "<!DOCTYPE html>\n"
-                   "<html lang=\"en\">\n"
-                   "\n"
-                   "<head>\n"
-                   "    <title>Verdant App</title>\n"
-                   "</head>\n"
-                   "\n"
-                   "<body>\n"
-                   "    <div id=\"root\"></div>\n"
-                   "    <script>\n"
-                   "        const root = document.getElementById(\"root\");\n"
-                   "    </script>\n"
-                   "</body>\n"
-                   "\n"
-                   "</html>\n";
+    std::ofstream script_js{output_dir / "script.js"};
+    if (!script_js) {
+        std::cerr << "Failed to create script.js\n";
+        return 1;
+    }
+
+    index_html << "<!DOCTYPE html>\n"
+                  "<html lang=\"en\">\n"
+                  "\n"
+                  "<head>\n"
+                  "    <title>Verdant App</title>\n"
+                  "    <script defer src=\"./script.js\"></script>\n"
+                  "</head>\n"
+                  "\n"
+                  "<body>\n"
+                  "</body>\n"
+                  "\n"
+                  "</html>\n";
+
+    script_js << generate_code(tree);
 
     return 0;
 }
