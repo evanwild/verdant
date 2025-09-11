@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+}
+
+#playground {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+
+  div {
+    flex-grow: 1;
+    margin: 10px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  div textarea {
+    width: 100%;
+    height: 100%;
+    resize: none;
+  }
+}
