@@ -5,6 +5,9 @@ export enum TokenKind {
   RightParen = 'RightParen',
   Semicolon = 'Semicolon',
   Equals = 'Equals',
+  Open = 'Open',
+  Close = 'Close',
+  OpenSlash = 'OpenSlash',
   Comp = 'Comp',
   State = 'State',
   Identifier = 'Identifier',
@@ -23,6 +26,9 @@ const lexemeToKind = new Map([
   [')', TokenKind.RightParen],
   [';', TokenKind.Semicolon],
   ['=', TokenKind.Equals],
+  ['<', TokenKind.Open],
+  ['>', TokenKind.Close],
+  ['</', TokenKind.OpenSlash],
   ['comp', TokenKind.Comp],
   ['state', TokenKind.State],
 ]);
@@ -68,7 +74,15 @@ export function tokenize(s: string): Token[] {
       continue;
     }
 
-    const kind = lexemeToKind.get(lexeme);
+    let kind = lexemeToKind.get(lexeme + peek());
+
+    if (kind !== undefined) {
+      lexeme += consume();
+      tokens.push({ kind, lexeme });
+      continue;
+    }
+
+    kind = lexemeToKind.get(lexeme);
 
     if (kind !== undefined) {
       tokens.push({ kind, lexeme });

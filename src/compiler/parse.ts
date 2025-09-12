@@ -4,12 +4,14 @@ export enum NodeKind {
   Component = 'Component',
   StateDeclaration = 'StateDeclaration',
   NumberLiteral = 'NumberLiteral',
+  HTML = 'HTML',
 }
 
 export type ComponentNode = {
   kind: NodeKind.Component;
   name: string;
   body: StatementNode[];
+  html: HTMLNode[];
 };
 
 export type StateDeclarationNode = {
@@ -21,6 +23,11 @@ export type StateDeclarationNode = {
 export type NumberLiteralNode = {
   kind: NodeKind.NumberLiteral;
   value: number;
+};
+
+export type HTMLNode = {
+  kind: NodeKind.HTML;
+  tagName: string;
 };
 
 export type ExpressionNode = NumberLiteralNode;
@@ -61,11 +68,16 @@ export function parse(tokens: Token[]): ComponentNode[] {
     consume(TokenKind.RightParen);
     consume(TokenKind.LeftCurly);
     const body: StatementNode[] = [];
-    while (!isAtEnd() && !peek(TokenKind.RightCurly)) {
+    while (!isAtEnd() && !peek(TokenKind.Open)) {
       body.push(statementNode());
     }
+    const html: HTMLNode[] = [];
+    html.push(htmlNode());
+    while (!isAtEnd() && !peek(TokenKind.RightCurly)) {
+      html.push(htmlNode());
+    }
     consume(TokenKind.RightCurly);
-    return { kind: NodeKind.Component, name, body };
+    return { kind: NodeKind.Component, name, body, html };
   };
 
   const stateDeclarationNode = (): StateDeclarationNode => {
@@ -82,6 +94,23 @@ export function parse(tokens: Token[]): ComponentNode[] {
     consume(TokenKind.NumberLiteral);
     const value = Number(previous().lexeme);
     return { kind: NodeKind.NumberLiteral, value };
+  };
+
+  const htmlNode = (): HTMLNode => {
+    consume(TokenKind.Open);
+    consume(TokenKind.Identifier);
+    const tagName = previous().lexeme;
+    consume(TokenKind.Close);
+    consume(TokenKind.OpenSlash);
+    consume(TokenKind.Identifier);
+    const closingTagName = previous().lexeme;
+    if (closingTagName !== tagName) {
+      throw new Error(
+        `Closing tag </${closingTagName}> doesn't match opening tag <${tagName}>`
+      );
+    }
+    consume(TokenKind.Close);
+    return { kind: NodeKind.HTML, tagName };
   };
 
   const expressionNode = (): ExpressionNode => {

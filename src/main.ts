@@ -12,12 +12,23 @@ const outputArea = document.getElementById(
 ) as HTMLTextAreaElement;
 
 // Load example program
-inputArea.value = `comp Counter() {
+inputArea.value = `comp Main() {
 	// No need for setters! The compiler knows where each state variable changes
 	// and automatically inserts re-render logic
-	state count1 = 0;
-	state count2 = 0;
-	state count3 = 0;
+	state count = 0;
+
+	// Implicit return and merging adjacent elements into fragments
+	// saves two indents vs the required React code!
+	// return (
+	// \t<>
+	// \t\t<h1></h1>
+	// \t\t...
+	// \t</>
+	// );
+
+	<h1></h1>
+	<button></button>
+	<button></button>
 }
 `;
 
