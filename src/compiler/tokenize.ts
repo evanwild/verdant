@@ -41,6 +41,14 @@ export function tokenize(s: string): Token[] {
       continue;
     }
 
+    if (lexeme + peek() === '//') {
+      // Start of a comment, skip rest of line
+      while (peek() !== '\n' && peek() !== '\0') {
+        consume();
+      }
+      continue;
+    }
+
     if (isAlpha(lexeme)) {
       // Read in the rest of keyword or identifier
       while (isAlphanumeric(peek())) {

@@ -13,6 +13,8 @@ const outputArea = document.getElementById(
 
 // Load example program
 inputArea.value = `comp Counter() {
+	// No need for setters! The compiler knows where each state variable changes
+	// and automatically inserts re-render logic
 	state count1 = 0;
 	state count2 = 0;
 	state count3 = 0;
