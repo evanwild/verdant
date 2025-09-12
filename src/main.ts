@@ -11,6 +11,14 @@ const outputArea = document.getElementById(
   'output-textarea'
 ) as HTMLTextAreaElement;
 
+// Load example program
+inputArea.value = `comp Counter() {
+	state count1 = 0;
+	state count2 = 0;
+	state count3 = 0;
+}
+`;
+
 function recompileSource() {
   try {
     const tokens = tokenize(inputArea.value);

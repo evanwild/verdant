@@ -3,8 +3,12 @@ export enum TokenKind {
   RightCurly = 'RightCurly',
   LeftParen = 'LeftParen',
   RightParen = 'RightParen',
+  Semicolon = 'Semicolon',
+  Equals = 'Equals',
   Comp = 'Comp',
+  State = 'State',
   Identifier = 'Identifier',
+  NumberLiteral = 'NumberLiteral',
 }
 
 export type Token = {
@@ -17,7 +21,10 @@ const lexemeToKind = new Map([
   ['}', TokenKind.RightCurly],
   ['(', TokenKind.LeftParen],
   [')', TokenKind.RightParen],
+  [';', TokenKind.Semicolon],
+  ['=', TokenKind.Equals],
   ['comp', TokenKind.Comp],
+  ['state', TokenKind.State],
 ]);
 
 export function tokenize(s: string): Token[] {
@@ -35,11 +42,21 @@ export function tokenize(s: string): Token[] {
     }
 
     if (isAlpha(lexeme)) {
+      // Read in the rest of keyword or identifier
       while (isAlphanumeric(peek())) {
         lexeme += consume();
       }
       const kind = lexemeToKind.get(lexeme) ?? TokenKind.Identifier;
       tokens.push({ kind, lexeme });
+      continue;
+    }
+
+    if (isDigit(lexeme)) {
+      // Read in the rest of number literal
+      while (isDigit(peek())) {
+        lexeme += consume();
+      }
+      tokens.push({ kind: TokenKind.NumberLiteral, lexeme });
       continue;
     }
 

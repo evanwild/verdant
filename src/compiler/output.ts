@@ -1,12 +1,34 @@
-import { type ComponentNode } from './parse.ts';
+import { NodeKind, type ComponentNode, type ExpressionNode } from './parse.ts';
+import { assertNever } from './utils.ts';
 
 export function outputJS(components: ComponentNode[]): string {
-  let s = '';
+  return components.map((comp) => outputComponent(comp)).join('\n');
+}
 
-  // Specific Packet Types
-  for (const comp of components) {
-    s += `class ${comp.name} {}\n`;
+function outputComponent(comp: ComponentNode): string {
+  const stateDeclarations = comp.body
+    .filter((stmt) => stmt.kind === NodeKind.StateDeclaration)
+    .map(
+      (decl) => `    this.${decl.name}=${outputExpression(decl.initialValue)};`
+    )
+    .join('\n');
+
+  const stateChangeHandlers = comp.body
+    .filter((stmt) => stmt.kind === NodeKind.StateDeclaration)
+    .map((decl) => `  ${decl.name}Changed() {}`)
+    .join('\n');
+
+  return `class ${comp.name} {
+  constructor() {
+${stateDeclarations}
   }
+${stateChangeHandlers}
+}`;
+}
 
-  return s;
+function outputExpression(expr: ExpressionNode): string {
+  if (expr.kind === NodeKind.NumberLiteral) {
+    return expr.value.toString();
+  }
+  assertNever(expr.kind);
 }
