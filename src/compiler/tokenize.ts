@@ -12,6 +12,7 @@ export enum TokenKind {
   State = 'State',
   Identifier = 'Identifier',
   NumberLiteral = 'NumberLiteral',
+  Text = 'Text',
 }
 
 export type Token = {
@@ -40,7 +41,25 @@ export function tokenize(s: string): Token[] {
   const peek = () => s[i] ?? '\0';
   const consume = () => s[i++] ?? '\0';
 
+  let openTags = 0;
+
   while (peek() !== '\0') {
+    if (tokens.length >= 1) {
+      const lastKind = tokens[tokens.length - 1].kind;
+      if (lastKind === TokenKind.Open) openTags++;
+      if (lastKind === TokenKind.OpenSlash) openTags--;
+      if (lastKind === TokenKind.Close && openTags > 0) {
+        // Inside an HTML element, read arbitrary text until the next tag
+        let lexeme = '';
+        while (peek() !== '\0' && peek() !== '<') {
+          lexeme += consume();
+        }
+        if (lexeme.length > 0) {
+          tokens.push({ kind: TokenKind.Text, lexeme });
+        }
+      }
+    }
+
     let lexeme = consume();
 
     if (isWhitespace(lexeme)) {

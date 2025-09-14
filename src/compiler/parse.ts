@@ -5,12 +5,13 @@ export enum NodeKind {
   StateDeclaration = 'StateDeclaration',
   NumberLiteral = 'NumberLiteral',
   HTML = 'HTML',
+  Text = 'Text',
 }
 
 export type ComponentNode = {
   kind: NodeKind.Component;
   name: string;
-  body: StatementNode[];
+  statements: StatementNode[];
   html: HTMLNode[];
 };
 
@@ -28,6 +29,12 @@ export type NumberLiteralNode = {
 export type HTMLNode = {
   kind: NodeKind.HTML;
   tagName: string;
+  children: (HTMLNode | TextNode)[];
+};
+
+export type TextNode = {
+  kind: NodeKind.Text;
+  text: string;
 };
 
 export type ExpressionNode = NumberLiteralNode;
@@ -56,7 +63,9 @@ export function parse(tokens: Token[]): ComponentNode[] {
 
   const consume = (kind: TokenKind) => {
     if (!tryConsume(kind)) {
-      throw new Error(`Expected ${kind} token while parsing`);
+      throw new Error(
+        `Tried to consume ${kind} token but found '${tokens[i].lexeme}'`
+      );
     }
   };
 
@@ -67,17 +76,16 @@ export function parse(tokens: Token[]): ComponentNode[] {
     consume(TokenKind.LeftParen);
     consume(TokenKind.RightParen);
     consume(TokenKind.LeftCurly);
-    const body: StatementNode[] = [];
+    const statements: StatementNode[] = [];
     while (!isAtEnd() && !peek(TokenKind.Open)) {
-      body.push(statementNode());
+      statements.push(statementNode());
     }
-    const html: HTMLNode[] = [];
-    html.push(htmlNode());
+    const html: HTMLNode[] = [htmlNode()];
     while (!isAtEnd() && !peek(TokenKind.RightCurly)) {
       html.push(htmlNode());
     }
     consume(TokenKind.RightCurly);
-    return { kind: NodeKind.Component, name, body, html };
+    return { kind: NodeKind.Component, name, statements, html };
   };
 
   const stateDeclarationNode = (): StateDeclarationNode => {
@@ -101,6 +109,14 @@ export function parse(tokens: Token[]): ComponentNode[] {
     consume(TokenKind.Identifier);
     const tagName = previous().lexeme;
     consume(TokenKind.Close);
+    const children: HTMLNode['children'] = [];
+    while (!isAtEnd() && !peek(TokenKind.OpenSlash)) {
+      if (peek(TokenKind.Open)) {
+        children.push(htmlNode());
+      } else {
+        children.push(textNode());
+      }
+    }
     consume(TokenKind.OpenSlash);
     consume(TokenKind.Identifier);
     const closingTagName = previous().lexeme;
@@ -110,7 +126,13 @@ export function parse(tokens: Token[]): ComponentNode[] {
       );
     }
     consume(TokenKind.Close);
-    return { kind: NodeKind.HTML, tagName };
+    return { kind: NodeKind.HTML, tagName, children };
+  };
+
+  const textNode = (): TextNode => {
+    consume(TokenKind.Text);
+    const text = previous().lexeme;
+    return { kind: NodeKind.Text, text };
   };
 
   const expressionNode = (): ExpressionNode => {

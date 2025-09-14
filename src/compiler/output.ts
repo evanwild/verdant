@@ -1,5 +1,13 @@
-import { NodeKind, type ComponentNode, type ExpressionNode } from './parse.ts';
-import { assertNever } from './utils.ts';
+import {
+  NodeKind,
+  type ComponentNode,
+  type ExpressionNode,
+  type HTMLNode,
+  type TextNode,
+} from './parse.ts';
+import { assertNever, explicitWhitespace } from './utils.ts';
+
+let nextElemNum = 0;
 
 export function outputJS(components: ComponentNode[]): string {
   return (
@@ -9,24 +17,19 @@ export function outputJS(components: ComponentNode[]): string {
 }
 
 function outputComponent(comp: ComponentNode): string {
-  const stateDeclarations = comp.body
+  const stateDeclarations = comp.statements
     .filter((stmt) => stmt.kind === NodeKind.StateDeclaration)
     .map((s) => `    this.${s.name}=${outputExpression(s.initialValue)};`)
     .join('\n');
 
-  const domElements = comp.html
-    .map(
-      (h, idx) => `    this.elem${idx}=document.createElement('${h.tagName}')`
-    )
-    .join('\n');
+  nextElemNum = 0;
+  const domElements = outputDOMElements(comp.html);
 
   const rootElement =
     '    this.rootElem=new DocumentFragment();\n' +
-    `    this.rootElem.append(${comp.html
-      .map((_, idx) => `this.elem${idx}`)
-      .join(',')});`;
+    `    this.rootElem.append(${domElements.toAppend});`;
 
-  const stateChangeHandlers = comp.body
+  const stateChangeHandlers = comp.statements
     .filter((stmt) => stmt.kind === NodeKind.StateDeclaration)
     .map((decl) => `  ${decl.name}Changed() {}`)
     .join('\n');
@@ -34,11 +37,38 @@ function outputComponent(comp: ComponentNode): string {
   return `class ${comp.name} {
   constructor() {
 ${stateDeclarations}
-${domElements}
+${domElements.js}
 ${rootElement}
   }
 ${stateChangeHandlers}
 }`;
+}
+
+function outputDOMElements(nodes: (HTMLNode | TextNode)[]): {
+  js: string;
+  toAppend: string[];
+} {
+  const result = { js: '', toAppend: [] as string[] };
+
+  for (const node of nodes) {
+    if (node.kind === NodeKind.Text) {
+      result.toAppend.push(`'${explicitWhitespace(node.text)}'`);
+      continue;
+    }
+
+    let elemName = `this.elem${nextElemNum++}`;
+
+    result.js += `    ${elemName}=document.createElement('${node.tagName}');\n`;
+
+    const { js, toAppend } = outputDOMElements(node.children);
+
+    result.js += js;
+    result.js += `    ${elemName}.append(${toAppend.join(',')});\n`;
+
+    result.toAppend.push(elemName);
+  }
+
+  return result;
 }
 
 function outputExpression(expr: ExpressionNode): string {

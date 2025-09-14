@@ -13,22 +13,13 @@ const outputArea = document.getElementById(
 
 // Load example program
 inputArea.value = `comp Main() {
-	// No need for setters! The compiler knows where each state variable changes
-	// and automatically inserts re-render logic
 	state count = 0;
 
-	// Implicit return and merging adjacent elements into fragments
-	// saves two indents vs the required React code!
-	// return (
-	// \t<>
-	// \t\t<h1></h1>
-	// \t\t...
-	// \t</>
-	// );
-
-	<h1></h1>
-	<button></button>
-	<button></button>
+	<div>
+		<h1>Count is 0</h1>
+		<button>Increment</button>
+		<button>Decrement</button>
+	</div>
 }
 `;
 
